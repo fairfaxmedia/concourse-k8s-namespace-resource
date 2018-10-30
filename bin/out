@@ -1,0 +1,70 @@
+#!/bin/bash
+set -e
+set -o pipefail
+exec 3>&1 # use fd 3 for script output
+exec 1>&2 # send normal stdout to stderr for logging
+
+# shellcheck source=bin/common.sh
+source "$( dirname "$( readlink -f "$0" )")"/common.sh
+
+DRY_RUN=$(jq -r ".params.dry_run // \"false\"" < "$payload")
+NAMESPACE=$(jq -r ".params.namespace // \"$NAMESPACE\"" < "$payload")
+
+NAMESPACE_FILE=$(jq -r ".params.namespace_file // \"\"" < "$payload")
+if [[ -n "$NAMESPACE_FILE" ]]; then
+    if [ -e "$NAMESPACE_FILE" ]; then
+        NAMESPACE=$(head -n1 < "$NAMESPACE_FILE" | tr -d " ")
+    else
+        echo "Namespace file '$NAMESPACE_FILE' does not exist."
+        exit 1
+    fi
+fi
+
+ANNOTATIONS=$(jq -r ".params.annotations // \"{}\"" < "$payload")
+LABELS=$(jq -r ".params.labels // \"{}\"" < "$payload")
+
+REMOVE=$(jq -r ".params.remove // \"false\"" < "$payload")
+
+if [[ -z "$NAMESPACE" ]]; then
+    echo "Not setting either source.namespace or params.namespace."
+    exit 1
+fi
+
+if [[ $DRY_RUN == "true" ]]; then
+    DRY_RUN="--dry-run"
+else
+    DRY_RUN=""
+fi
+
+if [[ $REMOVE == "true" ]]; then
+    $KUBECTL delete --dry-run namespace "$NAMESPACE"
+fi
+
+(
+printf "apiVersion: v1
+kind: Namespace
+metadata:
+  name: %s
+" "$NAMESPACE"
+if [[ $LABELS != "{}" ]]; then
+    printf "  labels:\\n"
+    echo "$LABELS" | jq -r '. | to_entries? | map([.key, .value]|join(": ")) | .[]' -r | sed -e 's,^,    ,'
+fi
+if [[ $ANNOTATIONS != "{}" ]]; then
+    printf "  annotations:\\n"
+    echo "$ANNOTATIONS" | jq -r '. | to_entries? | map([.key, .value]|join(": ")) | .[]' -r | sed -e 's,^,    ,'
+fi
+) | $KUBECTL apply $DRY_RUN -f -
+
+# OUT_LABELS=$( echo "$LABELS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
+# OUT_ANNOTATIONS=$( echo "$ANNOTATIONS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
+
+data="$(mktemp "k8s-resource-data.XXXXXX")"
+$KUBECTL get -o json "namespace/$NAMESPACE" | tee "$data" || true # if there are errors or namespace missing, return empty.
+OUT_ANNOTATIONS=$(jq -r '.metadata.annotations | to_entries? | map([.key, .value]|join("=")) | join(", ")' < "$data" | tr -d \")
+OUT_LABELS=$(jq -r '.metadata.labels | to_entries? | map([.key, .value]|join("=")) | join(", ")' < "$data" | tr -d \")
+
+result="$(jq -n "{version:{name:\"$NAMESPACE\",annotations:\"$OUT_ANNOTATIONS\",labels:\"$OUT_LABELS\"}}")"
+
+echo "Out complete"
+echo "$result" | jq -s add >&3
