@@ -7,7 +7,7 @@ resource_types:
 - name: kubernetes-namespace
   type: docker-image
   source:
-    repository: fairfaxmedia/concourse-kubernetes-namespace-resource
+    repository: fairfaxmedia/concourse-k8s-namespace-resource
 resources:
 - name: kubernetes-namespace
   type: kubernetes-namespace
