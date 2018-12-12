@@ -20,7 +20,7 @@ if [[ -n "$NAMESPACE_FILE" ]]; then
     fi
 fi
 
-VERSION=$(jq -r '.version' < $payload)
+VERSION=$(jq -r '.version' < "$payload")
 echo "Version: ${VERSION}"
 
 if [[ -z "$NAMESPACE" ]]; then
