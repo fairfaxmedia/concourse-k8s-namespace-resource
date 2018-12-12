@@ -10,6 +10,16 @@ source "$( dirname "$( readlink -f "$0" )")"/common.sh
 # get kube resource id 
 NAMESPACE=$(jq -r ".params.namespace // \"$NAMESPACE\"" < "$payload")
 
+NAMESPACE_FILE=$(jq -r ".params.namespace_file // \"\"" < "$payload")
+if [[ -n "$NAMESPACE_FILE" ]]; then
+    if [ -e "$NAMESPACE_FILE" ]; then
+        NAMESPACE=$(head -n1 < "$NAMESPACE_FILE" | tr -d " ")
+    else
+        echo "Namespace file '$NAMESPACE_FILE' does not exist."
+        exit 1
+    fi
+fi
+
 if [[ -z "$NAMESPACE" ]]; then
     result=""
 else
