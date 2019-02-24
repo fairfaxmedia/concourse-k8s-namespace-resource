@@ -6,13 +6,20 @@ cat > "$payload" <&0
 export payload
 
 DEBUG=$(jq -r .source.debug < "$payload")
-[[ "$DEBUG" == "true" ]] && { 
+[[ "$DEBUG" == "true" ]] && {
     echo "Enabling debug mode.";
     export PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -x;
 }
 
 cd "$1" || exit
+
+# shellcheck disable=SC2089
+GET_ANNOTATIONS='.metadata.annotations | with_entries(select(.key|test("kubernetes.io/")|not)) | with_entries(select(.key|test("k8s.io/")|not)) | to_entries? | map([.key, .value]|join("=")) | join(", ")'
+# shellcheck disable=SC2089
+GET_LABELS='.metadata.labels | to_entries? | map([.key, .value]|join("=")) | join(", ")'
+# shellcheck disable=SC2090
+export GET_ANNOTATIONS GET_LABELS
 
 mkdir -p /root/.kube
 
