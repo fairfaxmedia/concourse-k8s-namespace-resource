@@ -7,7 +7,7 @@ exec 1>&2 # send normal stdout to stderr for logging
 # shellcheck source=bin/common.sh
 source "$( dirname "$( readlink -f "$0" )")"/common.sh
 
-# get kube resource id 
+# get kube resource id
 NAMESPACE=$(jq -r ".params.namespace // \"$NAMESPACE\"" < "$payload")
 
 NAMESPACE_FILE=$(jq -r ".params.namespace_file // \"\"" < "$payload")
@@ -32,8 +32,8 @@ else
     data="$(mktemp "k8s-resource-data.XXXXXX")"
     $KUBECTL get -o json "$RESOURCE" > "$data" || true # if there are errors or namespace missing, return empty.
 
-    ANNOTATIONS=$(jq -r '.metadata.annotations | to_entries? | map([.key, .value]|join("=")) | join(", ")' < "$data" | tr -d \")
-    LABELS=$(jq -r '.metadata.labels | to_entries? | map([.key, .value]|join("=")) | join(", ")' < "$data" | tr -d \")
+    ANNOTATIONS=$(jq -r "$GET_ANNOTATIONS" < "$data" | tr -d \")
+    LABELS=$(jq -r "$GET_LABELS" < "$data" | tr -d \")
 
     result="$(jq -n "{version:{name:\"$NAMESPACE\",annotations:\"$ANNOTATIONS\",labels:\"$LABELS\"}}")"
 fi

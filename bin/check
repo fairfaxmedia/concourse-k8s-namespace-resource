@@ -18,8 +18,8 @@ else
     data="$(mktemp "k8s-resource-data.XXXXXX")"
     $KUBECTL get -o json "$RESOURCE" > "$data" || true # if there are errors or namespace missing, return empty.
 
-    ANNOTATIONS=$(jq -r '.metadata.annotations | to_entries? | map([.key, .value]|join("=")) | join(", ")' < "$data" | tr -d \" )
-    LABELS=$(jq -r '.metadata.labels | to_entries? | map([.key, .value]|join("=")) | join(", ")' < "$data" | tr -d \")
+    ANNOTATIONS=$(jq -r "${GET_ANNOTATIONS}" < "$data" | tr -d \" )
+    LABELS=$(jq -r "${GET_LABELS}" < "$data" | tr -d \")
 
     result=$(jq -n "[{name:\"$NAMESPACE\",annotations:\"$ANNOTATIONS\", labels:\"$LABELS\"}]")
 fi
