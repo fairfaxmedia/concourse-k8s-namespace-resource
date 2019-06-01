@@ -4,11 +4,14 @@
 
 ```yaml
 resource_types:
+
 - name: kubernetes-namespace
   type: docker-image
   source:
     repository: fairfaxmedia/concourse-k8s-namespace-resource
+
 resources:
+
 - name: kubernetes-namespace
   type: kubernetes-namespace
   source:
@@ -45,7 +48,9 @@ Updates Kubernetes resource
 * `namespace`: *Optional.* Override source.namespace, required if source.namespace is not set.
 * `namespace_file`: *Optional.* Read the namespace from a file, such as provided from an earlier task or resource. Replaces `namespace`.
 * `labels`: *Optional.* Key/Value of labels to apply to namespace.
+* `labels_file`: *Optional.*. Read the labels from a JSON formatted file. Replaces `labels`.
 * `annotations`: *Optional.* Key/Value of annotations to apply to namespace
+* `annotations_file`: *Optional.*. Read the annotations from a JSON formatted file. Replaces `annotations`.
 * `dry_run`: *Optional.* Do not make any changes.
 * `remove`: *Optional.* Instead of updating the namespace, remove it.
 
