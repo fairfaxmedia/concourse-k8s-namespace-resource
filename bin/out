@@ -21,7 +21,38 @@ if [[ -n "$NAMESPACE_FILE" ]]; then
 fi
 
 ANNOTATIONS=$(jq -r ".params.annotations // \"{}\"" < "$payload")
+
+ANNOTATIONS_FILE=$(jq -r ".params.annotations_file // \"\"" < "$payload")
+if [[ -n "$ANNOTATIONS_FILE" ]]; then
+    if [[ "$ANNOTATIONS" != "{}" ]]; then
+        echo "Do not specify 'annotations' and 'annotations_file' at the same time."
+        jq .params < "$payload"
+        exit 1
+    fi
+    if [ -e "$ANNOTATIONS_FILE" ]; then
+        ANNOTATIONS=$( jq . < "$ANNOTATIONS_FILE" || { echo "Annotations file '$ANNOTATIONS_FILE' is not proper JSON">&2 ; cat "$ANNOTATIONS_FILE" >&2 ; exit 1; } )
+    else
+        echo "Annotations file '$ANNOTATIONS_FILE' does not exist."
+        exit 1
+    fi
+fi
+
 LABELS=$(jq -r ".params.labels // \"{}\"" < "$payload")
+
+LABELS_FILE=$(jq -r ".params.labels_file // \"\"" < "$payload")
+if [[ -n "$LABELS_FILE" ]]; then
+    if [[ "$LABELS" != "{}" ]]; then
+        echo "Do not specify 'labels' and 'labels_file' at the same time."
+        jq .params < "$payload"
+        exit 1
+    fi
+    if [ -e "$LABELS_FILE" ]; then
+        LABELS=$( jq . < "$LABELS_FILE" || { echo "LABELS file '$LABELS_FILE' is not proper JSON">&2 ; cat "$LABELS_FILE" >&2 ; exit 1; } )
+    else
+        echo "LABELS file '$LABELS_FILE' does not exist."
+        exit 1
+    fi
+fi
 
 REMOVE=$(jq -r ".params.remove // \"false\"" < "$payload")
 
