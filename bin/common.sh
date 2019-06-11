@@ -15,7 +15,7 @@ DEBUG=$(jq -r .source.debug < "$payload")
 cd "$1" || exit
 
 # shellcheck disable=SC2089
-GET_ANNOTATIONS='.metadata.annotations | with_entries(select(.key|test("kubernetes.io/")|not)) | with_entries(select(.key|test("k8s.io/")|not)) | to_entries? | map([.key, .value]|join("=")) | join(", ")'
+GET_ANNOTATIONS='if .metadata.annotations then .metadata.annotations else [] end | with_entries(select(.key|test("kubernetes.io/")|not)) | with_entries(select(.key|test("k8s.io/")|not)) | to_entries? | map([.key, .value]|join("=")) | join(", ")'
 # shellcheck disable=SC2089
 GET_LABELS='.metadata.labels | to_entries? | map([.key, .value]|join("=")) | join(", ")'
 # shellcheck disable=SC2090
