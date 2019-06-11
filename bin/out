@@ -37,7 +37,7 @@ else
 fi
 
 if [[ $REMOVE == "true" ]]; then
-    $KUBECTL delete --dry-run namespace "$NAMESPACE"
+    $KUBECTL delete $DRY_RUN namespace "$NAMESPACE"
 fi
 
 (
