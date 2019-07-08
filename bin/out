@@ -71,6 +71,8 @@ if [[ $REMOVE == "true" ]]; then
     $KUBECTL delete $DRY_RUN namespace "$NAMESPACE"
 fi
 
+KUBE_APPLY="$(mktemp "k8s-apply.XXXXXX")"
+
 (
 printf "apiVersion: v1
 kind: Namespace
@@ -79,13 +81,16 @@ metadata:
 " "$NAMESPACE"
 if [[ $LABELS != "{}" ]]; then
     printf "  labels:\\n"
-    echo "$LABELS" | jq -r '. | to_entries? | map([.key, .value]|join(": ")) | .[]' -r | sed -e 's,^,    ,'
+    echo "$LABELS" | jq -r '. | to_entries? | .[] | "    \(.key): \"\(.value)\""'
 fi
 if [[ $ANNOTATIONS != "{}" ]]; then
     printf "  annotations:\\n"
-    echo "$ANNOTATIONS" | jq -r '. | to_entries? | map([.key, .value]|join(": ")) | .[]' -r | sed -e 's,^,    ,'
+    echo "$ANNOTATIONS" | jq -r '. | to_entries? | .[] | "    \(.key): \"\(.value)\""' 
 fi
-) | $KUBECTL apply $DRY_RUN -f -
+) | tee "$KUBE_APPLY"
+
+echo
+$KUBECTL apply $DRY_RUN -f "$KUBE_APPLY"
 
 # OUT_LABELS=$( echo "$LABELS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
 # OUT_ANNOTATIONS=$( echo "$ANNOTATIONS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
