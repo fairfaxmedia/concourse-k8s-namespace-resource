@@ -6,6 +6,7 @@ cat > "$payload" <&0
 export payload
 
 TEMPDIR=$(mktemp -d)
+# shellcheck disable=SC2064
 trap "rm -rf ${TEMPDIR}" EXIT
 
 DEBUG=$(jq -r .source.debug < "$payload")
@@ -24,7 +25,7 @@ GET_LABELS='.metadata.labels | to_entries? | map([.key, .value]|join("=")) | joi
 # shellcheck disable=SC2090
 export GET_ANNOTATIONS GET_LABELS
 
-mkdir -p $TEMPDIR
+mkdir -p "$TEMPDIR"
 
 KUBE_URL=$(jq -r .source.cluster_url < "$payload")
 NAMESPACE=$(jq -r '.source.namespace // ""' < "$payload")
@@ -39,9 +40,9 @@ if [[ "$KUBE_URL" =~ https.* ]]; then
     KEY_PATH="${TEMPDIR}/key.pem"
     CERT_PATH="${TEMPDIR}/cert.pem"
 
-    echo "$KUBE_CA" | base64 -d > $CA_PATH
-    echo "$KUBE_KEY" | base64 -d > $KEY_PATH
-    echo "$KUBE_CERT" | base64 -d > $CERT_PATH
+    echo "$KUBE_CA" | base64 -d > "$CA_PATH"
+    echo "$KUBE_KEY" | base64 -d > "$KEY_PATH"
+    echo "$KUBE_CERT" | base64 -d > "$CERT_PATH"
 
     KUBECTL="$KUBECTL --certificate-authority=$CA_PATH --client-key=$KEY_PATH --client-certificate=$CERT_PATH"
 fi
