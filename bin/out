@@ -71,7 +71,7 @@ if [[ $REMOVE == "true" ]]; then
     $KUBECTL delete $DRY_RUN namespace "$NAMESPACE"
 fi
 
-KUBE_APPLY="$(mktemp "k8s-apply.XXXXXX")"
+KUBE_APPLY="$(mktemp "$TMPDIR/k8s-apply.XXXXXX")"
 
 (
 printf "apiVersion: v1
@@ -95,7 +95,7 @@ $KUBECTL apply $DRY_RUN -f "$KUBE_APPLY"
 # OUT_LABELS=$( echo "$LABELS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
 # OUT_ANNOTATIONS=$( echo "$ANNOTATIONS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
 
-data="$(mktemp "k8s-resource-data.XXXXXX")"
+data="$(mktemp "$TMPDIR/k8s-resource-data.XXXXXX")"
 $KUBECTL get -o json "namespace/$NAMESPACE" | tee "$data" || true # if there are errors or namespace missing, return empty.
 OUT_ANNOTATIONS=$(jq -r "$GET_ANNOTATIONS" < "$data" | tr -d \")
 OUT_LABELS=$(jq -r "$GET_LABELS" < "$data" | tr -d \")

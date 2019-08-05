@@ -15,7 +15,7 @@ else
     export KUBECTL
 
     RESOURCE="namespace/$NAMESPACE"
-    data="$(mktemp "k8s-resource-data.XXXXXX")"
+    data="$(mktemp "$TMPDIR/k8s-resource-data.XXXXXX")"
     $KUBECTL get -o json "$RESOURCE" > "$data" || true # if there are errors or namespace missing, return empty.
 
     ANNOTATIONS=$(jq -r "${GET_ANNOTATIONS}" < "$data" | tr -d \" )
