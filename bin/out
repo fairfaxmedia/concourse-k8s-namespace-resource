@@ -68,32 +68,37 @@ else
 fi
 
 if [[ $REMOVE == "true" ]]; then
-    $KUBECTL delete $DRY_RUN namespace "$NAMESPACE"
-fi
 
-KUBE_APPLY="$(mktemp "$TMPDIR/k8s-apply.XXXXXX")"
+    if [[ -n "$DRY_RUN" ]]; then
+        echo "# Would delete namespace/$NAMESPACE but DRYRUN"
+    else
+        $KUBECTL delete $DRY_RUN namespace "$NAMESPACE"
+    fi
 
-(
-printf "apiVersion: v1
+else
+
+    KUBE_APPLY="$(mktemp "k8s-apply.XXXXXX")"
+
+    (
+    printf "apiVersion: v1
 kind: Namespace
 metadata:
   name: %s
 " "$NAMESPACE"
-if [[ $LABELS != "{}" ]]; then
-    printf "  labels:\\n"
-    echo "$LABELS" | jq -r '. | to_entries? | .[] | "    \(.key): \"\(.value)\""'
-fi
-if [[ $ANNOTATIONS != "{}" ]]; then
-    printf "  annotations:\\n"
-    echo "$ANNOTATIONS" | jq -r '. | to_entries? | .[] | "    \(.key): \"\(.value)\""' 
-fi
-) | tee "$KUBE_APPLY"
+    if [[ $LABELS != "{}" ]]; then
+        printf "  labels:\\n"
+        echo "$LABELS" | jq -r '. | to_entries? | .[] | "    \(.key): \"\(.value)\""'
+    fi
+    if [[ $ANNOTATIONS != "{}" ]]; then
+        printf "  annotations:\\n"
+        echo "$ANNOTATIONS" | jq -r '. | to_entries? | .[] | "    \(.key): \"\(.value)\""'
+    fi
+    ) | tee "$KUBE_APPLY" | nl -ba
 
-echo
-$KUBECTL apply $DRY_RUN -f "$KUBE_APPLY"
+    echo
+    $KUBECTL apply $DRY_RUN -f "$KUBE_APPLY"
 
-# OUT_LABELS=$( echo "$LABELS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
-# OUT_ANNOTATIONS=$( echo "$ANNOTATIONS" | jq -r '. | to_entries? | map([.key, .value]|join("=")) | join(", ")')
+fi
 
 data="$(mktemp "$TMPDIR/k8s-resource-data.XXXXXX")"
 $KUBECTL get -o json "namespace/$NAMESPACE" | tee "$data" || true # if there are errors or namespace missing, return empty.
