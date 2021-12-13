@@ -1,5 +1,5 @@
 FROM hadolint/hadolint:v1.16.3 AS hadolint
-FROM koalaman/shellcheck:v0.6.0 AS shellcheck
+FROM koalaman/shellcheck:v0.8.0 AS shellcheck
 FROM alpine:3.9 as build
 
 WORKDIR /tmp/build
