@@ -1,6 +1,6 @@
 FROM hadolint/hadolint:v1.16.3 AS hadolint
 FROM koalaman/shellcheck:v0.8.0 AS shellcheck
-FROM alpine:3.9 as build
+FROM alpine:3.16 as build
 
 WORKDIR /tmp/build
 
@@ -23,7 +23,7 @@ RUN /usr/local/bin/hadolint ./Dockerfile
 
 RUN /usr/local/bin/shellcheck --format=gcc ./bin/*
 
-FROM alpine:3.9
+FROM alpine:3.16
 RUN apk --no-cache --quiet add jq~=1.6 bash~=4.4
 COPY --from=build /usr/local/bin/kubectl /usr/local/bin/kubectl
 
