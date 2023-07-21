@@ -100,7 +100,7 @@ metadata:
 
 fi
 
-data="$(mktemp "k8s-resource-data.XXXXXX")"
+data="$(mktemp "$TMPDIR/k8s-resource-data.XXXXXX")"
 $KUBECTL get -o json "namespace/$NAMESPACE" | tee "$data" || true # if there are errors or namespace missing, return empty.
 OUT_ANNOTATIONS=$(jq -r "$GET_ANNOTATIONS" < "$data" | tr -d \")
 OUT_LABELS=$(jq -r "$GET_LABELS" < "$data" | tr -d \")
