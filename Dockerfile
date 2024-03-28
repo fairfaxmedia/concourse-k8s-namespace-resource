@@ -1,4 +1,4 @@
-FROM hadolint/hadolint:v1.23.0 AS hadolint
+FROM hadolint/hadolint:2.12.0 AS hadolint
 FROM koalaman/shellcheck:v0.9.0 AS shellcheck
 FROM alpine:3.16 as build
 
